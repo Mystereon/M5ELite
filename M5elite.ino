@@ -10,7 +10,23 @@
 #include "M5StackUpdater.h"
 #include "ships.h"
 
+// With 1024 stars the update rate is ~65 frames per second
+#define NSTARS 128
+uint8_t sx[NSTARS] = {};
+uint8_t sy[NSTARS] = {};
+uint8_t sz[NSTARS] = {};
 
+uint8_t za, zb, zc, zx;
+
+// Fast 0-255 random number generator from http://eternityforest.com/Projects/rng.php:
+uint8_t __attribute__((always_inline)) rng()
+{
+  zx++;
+  za = (za^zc^zx);
+  zb = (zb+za);
+  zc = (zc+(zb>>1)^za);
+  return zc;
+}
 //M5.Lcd_eSprite img = M5.Lcd_eSprite(&M5.Lcd);  // Create Sprite object "img" with pointer to "M5.Lcd" object
 // the pointer is used by pushSprite() to push it onto the M5.Lcd
 
@@ -42,7 +58,10 @@ float scalefactor = 0;
 
 void setup(void)
 {
-  
+  za = random(256);
+  zb = random(256);
+  zc = random(256);
+  zx = random(256);
   Serial.begin(115200);
   Wire.begin();if(digitalRead(39)==0){updateFromFS(SD);ESP.restart();}//SD UPdate
   M5.Lcd.init();   // initialize a ST7789 chip, 240x240 pixels
@@ -50,10 +69,8 @@ void setup(void)
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setCursor(0, 15, 2);
   M5.Lcd.setTextColor(WHITE, BLACK); M5.Lcd.setTextFont(1);
-  M5.Lcd.setFreeFont(FF6);
-  M5.Lcd.println("   Commander JAMESON");
-  M5.Lcd.setCursor(0, 40, 2);
-  M5.Lcd.println("Rank: E L I T E");
+  M5.Lcd.setFreeFont(FF5);
+  M5.Lcd.println("  E L I T E - SHIP VIEWER M5");
   //M5.Lcd.println("Cobra MK I");
 }
 
@@ -127,11 +144,11 @@ void rotate_ship(void) {
       }
       M5.Lcd.fillRect(1, 21, 318, 178, BLACK);
       M5.Lcd.drawRect(0, 20, 320, 180, WHITE);
+      stars();
       draw_wireframe_ship();
       if (scalefactor < 1) scalefactor = scalefactor + 0.02;
-      delay(2);
-      M5.Lcd.setCursor(0, 40, 2);
-      M5.Lcd.println("    Rank: E L I T E");
+      
+      
     }
   }
 }
@@ -143,7 +160,7 @@ void loop(void)
   M5.Lcd.fillRect(0, 200, 239, 40, BLACK);
   M5.Lcd.setCursor(10, 234, 2);
   M5.Lcd.setTextColor(WHITE, BLACK);  M5.Lcd.setTextSize(1);
-  M5.Lcd.println("    Cobra MK I             ");
+  M5.Lcd.println("      Cobra MK I               ");
   memcpy(ship_vertices, cobra_vertices, sizeof(cobra_vertices));
   ship_vertices_cnt = cobra_vertices_cnt;
   scale = cobra_scale;
@@ -154,7 +171,7 @@ void loop(void)
   M5.Lcd.fillRect(0, 200, 239, 40, BLACK);
   M5.Lcd.setCursor(10, 234, 2);
   M5.Lcd.setTextColor(WHITE, BLACK);  M5.Lcd.setTextSize(1);
-  M5.Lcd.println("      Adder             ");
+  M5.Lcd.println("         Adder               ");
   memcpy(ship_vertices, adder_vertices, sizeof(adder_vertices));
   ship_vertices_cnt = adder_vertices_cnt;
   scale = adder_scale;
@@ -165,7 +182,7 @@ void loop(void)
   M5.Lcd.fillRect(0, 200, 239, 40, BLACK);
   M5.Lcd.setCursor(10, 234, 2);
   M5.Lcd.setTextColor(WHITE, BLACK);  M5.Lcd.setTextSize(1);
-  M5.Lcd.println("       ASP             ");
+  M5.Lcd.println("           ASP                ");
   memcpy(ship_vertices, asp_vertices, sizeof(asp_vertices));
   ship_vertices_cnt = asp_vertices_cnt;
   scale = asp_scale;
@@ -176,7 +193,7 @@ void loop(void)
   M5.Lcd.fillRect(0, 200, 239, 40, BLACK);
   M5.Lcd.setCursor(10, 234, 2);
   M5.Lcd.setTextColor(WHITE, BLACK);  M5.Lcd.setTextSize(1);
-  M5.Lcd.println("Anaconda             ");
+  M5.Lcd.println("        Anaconda             ");
   memcpy(ship_vertices, anaconda_vertices, sizeof(anaconda_vertices));
   ship_vertices_cnt = anaconda_vertices_cnt;
   scale = anaconda_scale;
@@ -187,7 +204,7 @@ void loop(void)
   M5.Lcd.fillRect(0, 200, 239, 40, BLACK);
   M5.Lcd.setCursor(10, 234, 2);
   M5.Lcd.setTextColor(WHITE, BLACK);  M5.Lcd.setTextSize(1);
-  M5.Lcd.println("      Viper      ");
+  M5.Lcd.println("        Viper          ");
   memcpy(ship_vertices, viper_vertices, sizeof(viper_vertices));
   ship_vertices_cnt = viper_vertices_cnt;
   scale = viper_scale;
@@ -198,7 +215,7 @@ void loop(void)
   M5.Lcd.fillRect(0, 200, 239, 40, BLACK);
   M5.Lcd.setCursor(10, 234, 2);
   M5.Lcd.setTextColor(WHITE, BLACK);  M5.Lcd.setTextSize(1);
-  M5.Lcd.println("    Sidewinder      ");
+  M5.Lcd.println("       Sidewinder          ");
   memcpy(ship_vertices, sidewinder_vertices, sizeof(sidewinder_vertices));
   ship_vertices_cnt = sidewinder_vertices_cnt;
   scale = sidewinder_scale;
@@ -209,7 +226,7 @@ void loop(void)
   M5.Lcd.fillRect(0, 200, 239, 40, BLACK);
   M5.Lcd.setCursor(10, 234, 2);
   M5.Lcd.setTextColor(WHITE, BLACK);  M5.Lcd.setTextSize(1);
-  M5.Lcd.println("   Coriolis Station");
+  M5.Lcd.println("       Coriolis Station      ");
   memcpy(ship_vertices, coriolis_vertices, sizeof(coriolis_vertices));
   ship_vertices_cnt = coriolis_vertices_cnt;
   scale = coriolis_scale;
@@ -220,7 +237,7 @@ void loop(void)
   M5.Lcd.fillRect(0, 200, 239, 40, BLACK);
   M5.Lcd.setCursor(10, 234, 2);
   M5.Lcd.setTextColor(WHITE, BLACK);  M5.Lcd.setTextSize(1);
-  M5.Lcd.println("   Dodo Station");
+  M5.Lcd.println("          Dodo Station         ");
   memcpy(ship_vertices, dodo_vertices, sizeof(dodo_vertices));
   ship_vertices_cnt = dodo_vertices_cnt;
   scale = dodo_scale;
@@ -231,11 +248,55 @@ void loop(void)
   M5.Lcd.fillRect(0, 200, 239, 40, BLACK);
   M5.Lcd.setCursor(10, 234, 2);
   M5.Lcd.setTextColor(WHITE, BLACK);  M5.Lcd.setTextSize(1);
-  M5.Lcd.println("     Thargoid");
+  M5.Lcd.println("         Thargoid           ");
   memcpy(ship_vertices, thargoid_vertices, sizeof(thargoid_vertices));
   ship_vertices_cnt = thargoid_vertices_cnt;
   scale = thargoid_scale;
   memcpy(ship_faces, thargoid_faces, sizeof(thargoid_faces));
   ship_faces_cnt = thargoid_faces_cnt;
   rotate_ship();
+}
+void stars()
+{
+  unsigned long t0 = micros();
+  uint8_t spawnDepthVariation = 255;
+
+  for(int i = 0; i < NSTARS; ++i)
+  {
+    if (sz[i] <= 1)
+    {
+      sx[i] = 160 - 120 + rng();
+      sy[i] = rng();
+      sz[i] = spawnDepthVariation--;
+    }
+    else
+    {
+      int old_screen_x = ((int)sx[i] - 160) * 256 / sz[i] + 160;
+      int old_screen_y = ((int)sy[i] - 120) * 256 / sz[i] + 120;
+
+      // This is a faster pixel drawing function for occassions where many single pixels must be drawn
+      M5.Lcd.drawPixel(old_screen_x, old_screen_y,TFT_BLACK);
+
+      sz[i] -= 2;
+      if (sz[i] > 1)
+      {
+        int screen_x = ((int)sx[i] - 160) * 256 / sz[i] + 160;
+        int screen_y = ((int)sy[i] - 120) * 256 / sz[i] + 120;
+  
+        if (screen_x >= 1 && screen_y >= 21 && screen_x < 319 && screen_y < 179)
+        {
+          uint8_t r, g, b;
+          r = g = b = 255 - sz[i];
+          M5.Lcd.drawPixel(screen_x, screen_y, M5.Lcd.color565(r,g,b));
+        }
+        else
+          sz[i] = 0; // Out of screen, die.
+      }
+    }
+  }
+  unsigned long t1 = micros();
+  //static char timeMicros[8] = {};
+
+ // Calcualte frames per second
+  Serial.println(1.0/((t1 - t0)/1000000.0));
 }
